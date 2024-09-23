@@ -1,0 +1,31 @@
+// Allow access to wp-login.php only if the correct URL is used
+function restrict_wp_login_access() {
+	$current_url = $_SERVER['REQUEST_URI'];
+	$customlogin = '/customurl';
+	$allowed_url = '/wp-login.php?token=12345687wordpress'; // Set your specific URL condition here
+	
+	if ($current_url ===  $customlogin) {
+        wp_redirect(home_url($allowed_url), 301); // 301 for permanent redirect
+        exit;
+    }
+	
+    // Check if the user is not logged in
+    if (!is_user_logged_in()) {
+        // If trying to access wp-login.php
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false) {
+            // Allow access only if the correct URL condition is met
+            if ($_SERVER['REQUEST_URI'] !== $allowed_url) {
+                // Redirect to the homepage or an error page
+                wp_redirect(home_url()); // You can customize this redirect as needed
+                exit;
+            }
+        }
+
+        // Redirect wp-admin access
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-admin') !== false) {
+            wp_redirect(home_url()); // Redirect to the homepage or custom URL
+            exit;
+        }
+    }
+}
+add_action('init', 'restrict_wp_login_access');
